@@ -52,7 +52,14 @@ export const TasksProvider = ({ children }: { children: ReactNode }) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTasks(data || []);
+      
+      // Cast the data to ensure status is of the correct type
+      const typedData: Task[] = data?.map(item => ({
+        ...item,
+        status: (item.status as "pending" | "completed" | "approved")
+      })) || [];
+      
+      setTasks(typedData);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
       console.error('Error fetching tasks:', err);
@@ -79,8 +86,14 @@ export const TasksProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
       
+      // Cast the data to ensure status is of the correct type
+      const typedData = data?.map(item => ({
+        ...item,
+        status: (item.status as "pending" | "completed" | "approved") 
+      }));
+      
       toast.success(`Task added successfully`);
-      setTasks(prev => [...(data || []), ...prev]);
+      setTasks(prev => [...(typedData || []), ...prev]);
     } catch (err) {
       toast.error('Failed to add task');
       console.error('Error adding task:', err);
@@ -134,7 +147,7 @@ export const TasksProvider = ({ children }: { children: ReactNode }) => {
       
       toast.success('Task completed!');
       setTasks(prev => 
-        prev.map(task => task.id === id ? { ...task, status: 'completed' } : task)
+        prev.map(task => task.id === id ? { ...task, status: 'completed' as const } : task)
       );
     } catch (err) {
       toast.error('Failed to complete task');

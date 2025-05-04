@@ -24,6 +24,7 @@ interface AuthContextType {
   signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   switchAccount: (userId: string) => void;
+  users: AppUser[]; // Added users property
 }
 
 // Create context
@@ -34,6 +35,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  // Demo users array for development purposes
+  const [users, setUsers] = useState<AppUser[]>([
+    {
+      id: "parent-1",
+      name: "Parent User",
+      role: "parent",
+      avatar: "https://i.pravatar.cc/150?u=parent-1"
+    },
+    {
+      id: "child-1",
+      name: "Child User",
+      role: "child",
+      avatar: "https://i.pravatar.cc/150?u=child-1"
+    }
+  ]);
 
   // Set up authentication listeners
   useEffect(() => {
@@ -42,11 +58,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setSupabaseUser(session?.user || null);
       if (session?.user) {
-        setCurrentUser({
+        const newUser = {
           id: session.user.id,
           name: session.user.user_metadata.name || 'User',
-          role: 'parent',
+          role: 'parent' as UserRole,
           avatar: `https://i.pravatar.cc/150?u=${session.user.id}`
+        };
+        setCurrentUser(newUser);
+        
+        // Add the new user to the users array if not already present
+        setUsers(prev => {
+          const exists = prev.some(u => u.id === newUser.id);
+          if (!exists) {
+            return [...prev, newUser];
+          }
+          return prev;
         });
       }
       setLoading(false);
@@ -57,11 +83,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setSupabaseUser(session?.user || null);
       if (session?.user) {
-        setCurrentUser({
+        const newUser = {
           id: session.user.id,
           name: session.user.user_metadata.name || 'User',
-          role: 'parent',
+          role: 'parent' as UserRole,
           avatar: `https://i.pravatar.cc/150?u=${session.user.id}`
+        };
+        setCurrentUser(newUser);
+        
+        // Add the new user to the users array if not already present
+        setUsers(prev => {
+          const exists = prev.some(u => u.id === newUser.id);
+          if (!exists) {
+            return [...prev, newUser];
+          }
+          return prev;
         });
       } else {
         setCurrentUser(null);
@@ -135,8 +171,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Switch between accounts (for demo - will be adjusted)
   const switchAccount = (userId: string) => {
-    // This will be adjusted once we implement child accounts
-    console.log("Switching to account:", userId);
+    const selectedUser = users.find(user => user.id === userId);
+    if (selectedUser) {
+      setCurrentUser(selectedUser);
+    }
   };
 
   const value = {
@@ -147,7 +185,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login,
     signup,
     logout,
-    switchAccount
+    switchAccount,
+    users // Added users property to the context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
