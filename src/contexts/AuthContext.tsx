@@ -1,118 +1,153 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
+import { Session, User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Define user types
 export type UserRole = "parent" | "child";
 
-export interface User {
+export interface AppUser {
   id: string;
   name: string;
   role: UserRole;
   avatar?: string;
-  parentId?: string; // Only for child accounts
 }
 
 // Auth context type
 interface AuthContextType {
-  currentUser: User | null;
+  currentUser: AppUser | null;
+  supabaseUser: User | null;
+  session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signup: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => Promise<void>;
   switchAccount: (userId: string) => void;
-  users: User[]; // All users (for demo - family members)
 }
 
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Demo users data for the prototype
-const demoUsers: User[] = [
-  {
-    id: "parent1",
-    name: "Alex",
-    role: "parent",
-    avatar: "https://i.pravatar.cc/150?img=11",
-  },
-  {
-    id: "child1",
-    name: "Sam",
-    role: "child",
-    parentId: "parent1",
-    avatar: "https://i.pravatar.cc/150?img=8",
-  },
-  {
-    id: "child2",
-    name: "Jamie",
-    role: "child",
-    parentId: "parent1",
-    avatar: "https://i.pravatar.cc/150?img=5",
-  }
-];
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [users] = useState<User[]>(demoUsers);
 
-  // Simulate loading auth state
+  // Set up authentication listeners
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setSupabaseUser(session?.user || null);
+      if (session?.user) {
+        setCurrentUser({
+          id: session.user.id,
+          name: session.user.user_metadata.name || 'User',
+          role: 'parent',
+          avatar: `https://i.pravatar.cc/150?u=${session.user.id}`
+        });
+      }
       setLoading(false);
-    }, 1000);
+    });
 
-    return () => clearTimeout(timer);
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setSupabaseUser(session?.user || null);
+      if (session?.user) {
+        setCurrentUser({
+          id: session.user.id,
+          name: session.user.user_metadata.name || 'User',
+          role: 'parent',
+          avatar: `https://i.pravatar.cc/150?u=${session.user.id}`
+        });
+      } else {
+        setCurrentUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Mock login function
-  const login = async (email: string, password: string) => {
+  // Sign up with email and password
+  const signup = async (email: string, password: string, name: string) => {
     setLoading(true);
-    // For demo, we'll just log in as the parent
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const parentUser = users.find(user => user.role === "parent");
-      if (parentUser) {
-        setCurrentUser(parentUser);
-        // Store in session
-        sessionStorage.setItem("currentUser", JSON.stringify(parentUser));
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: { name }
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
       }
+      
+      toast.success("Signup successful! Please check your email for verification.");
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Signup error:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  // Mock logout function
-  const logout = () => {
-    setCurrentUser(null);
-    sessionStorage.removeItem("currentUser");
+  // Login with email and password
+  const login = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+
+      toast.success("Login successful!");
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Switch between accounts (for demo)
+  // Logout user
+  const logout = async () => {
+    setLoading(true);
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Switch between accounts (for demo - will be adjusted)
   const switchAccount = (userId: string) => {
-    const user = users.find(u => u.id === userId);
-    if (user) {
-      setCurrentUser(user);
-      sessionStorage.setItem("currentUser", JSON.stringify(user));
-    }
+    // This will be adjusted once we implement child accounts
+    console.log("Switching to account:", userId);
   };
-
-  // Check for stored user on mount
-  useEffect(() => {
-    const storedUser = sessionStorage.getItem("currentUser");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
 
   const value = {
     currentUser,
+    supabaseUser,
+    session,
     loading,
     login,
+    signup,
     logout,
-    switchAccount,
-    users
+    switchAccount
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

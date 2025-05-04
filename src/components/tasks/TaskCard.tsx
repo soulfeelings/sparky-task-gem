@@ -1,13 +1,24 @@
 
 import React, { useState } from "react";
 import { Check, Star } from "lucide-react";
-import { Task, getCategoryEmoji } from "@/utils/demoData";
+import { getCategoryEmoji } from "@/utils/demoData";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+// Interface for task props from Task context
+interface TaskProps {
+  id: string;
+  title: string;
+  description: string;
+  assignedTo: string;
+  points: number;
+  completed: boolean;
+  category?: string;
+}
+
 interface TaskCardProps {
-  task: Task;
+  task: TaskProps;
   onComplete?: (taskId: string) => void;
 }
 
@@ -16,14 +27,15 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete }) => {
   const [showConfetti, setShowConfetti] = useState(false);
   const { currentUser } = useAuth();
   
+  const isParent = currentUser?.role === "parent";
   const isChild = currentUser?.role === "child";
   const isAssignedToCurrentUser = task.assignedTo === currentUser?.id;
 
   const handleComplete = () => {
-    if (!isAssignedToCurrentUser) return;
+    if (!isAssignedToCurrentUser && !isParent) return;
     
     setIsCompleting(true);
-    // Simulate API call
+    // Small delay for better UX
     setTimeout(() => {
       if (onComplete) {
         onComplete(task.id);
@@ -62,8 +74,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onComplete }) => {
         <span>{task.points} points</span>
       </div>
       
-      {/* Complete button (only for children and assigned tasks) */}
-      {isChild && isAssignedToCurrentUser && !task.completed && (
+      {/* Complete button (only for children and assigned tasks, or for parents) */}
+      {!task.completed && (isParent || (isChild && isAssignedToCurrentUser)) && (
         <Button 
           onClick={handleComplete} 
           disabled={isCompleting}
