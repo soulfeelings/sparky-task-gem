@@ -6,15 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import RewardCard from "@/components/rewards/RewardCard";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Reward {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-  image_url?: string;
-  user_id: string;
-}
+import { Reward } from "@/types/reward";
 
 const RewardsPage = () => {
   const { currentUser } = useAuth();
@@ -46,7 +38,10 @@ const RewardsPage = () => {
         // Calculate available points
         const points = tasksData?.reduce((sum, task) => sum + task.points, 0) || 0;
         
-        setRewards(rewardsData || []);
+        // Cast data to ensure it matches our Reward interface
+        const typedRewards = rewardsData as Reward[] || [];
+        
+        setRewards(typedRewards);
         setAvailablePoints(points);
       } catch (err) {
         console.error("Error fetching rewards:", err);
@@ -89,13 +84,7 @@ const RewardsPage = () => {
             {rewards.map(reward => (
               <RewardCard 
                 key={reward.id} 
-                reward={{
-                  id: reward.id,
-                  title: reward.title,
-                  description: reward.description,
-                  points: reward.points,
-                  image: reward.image_url
-                }} 
+                reward={reward}
               />
             ))}
           </div>

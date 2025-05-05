@@ -8,16 +8,7 @@ import TaskCard from "@/components/tasks/TaskCard";
 import RewardCard from "@/components/rewards/RewardCard";
 import { useTasks } from "@/contexts/TasksContext";
 import { supabase } from "@/integrations/supabase/client";
-
-// Define reward interface
-interface Reward {
-  id: string;
-  title: string;
-  description: string;
-  points: number;
-  image_url?: string;
-  user_id: string;
-}
+import { Reward } from "@/types/reward";
 
 const ChildDashboard = () => {
   const { currentUser } = useAuth();
@@ -41,7 +32,10 @@ const ChildDashboard = () => {
           .select("*");
         
         if (error) throw error;
-        setRewards(data || []);
+        
+        // Cast data to ensure it matches our Reward interface
+        const typedRewards = data as Reward[] || [];
+        setRewards(typedRewards);
       } catch (err) {
         console.error("Error fetching rewards:", err);
       }
@@ -198,13 +192,7 @@ const ChildDashboard = () => {
               {rewards.slice(0, 2).map(reward => (
                 <RewardCard 
                   key={reward.id}
-                  reward={{
-                    id: reward.id,
-                    title: reward.title,
-                    description: reward.description,
-                    points: reward.points,
-                    image: reward.image_url
-                  }} 
+                  reward={reward}
                 />
               ))}
             </div>
