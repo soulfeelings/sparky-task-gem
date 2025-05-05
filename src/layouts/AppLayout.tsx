@@ -64,7 +64,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 <p className="text-xs text-muted-foreground">{currentUser?.role}</p>
               </div>
               
-              {/* Switch accounts (demo only) */}
+              {/* Switch accounts (real accounts) */}
               {otherUsers.length > 0 && (
                 <>
                   <div className="px-2 py-1.5 text-xs text-muted-foreground">

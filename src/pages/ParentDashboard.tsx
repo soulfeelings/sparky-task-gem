@@ -13,6 +13,7 @@ import TaskCard from "@/components/tasks/TaskCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ParentDashboard = () => {
   const { currentUser } = useAuth();
@@ -85,8 +86,28 @@ const ParentDashboard = () => {
           
           <div className="grid grid-cols-1 gap-4">
             {loading ? (
-              // Show loading skeleton
-              <>Loading...</>
+              // Show loading skeletons
+              Array.from({ length: 2 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center">
+                      <Skeleton className="h-12 w-12 rounded-full" />
+                      <div className="ml-4 space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <Skeleton className="h-16 rounded-lg" />
+                      <Skeleton className="h-16 rounded-lg" />
+                    </div>
+                    <div className="mt-4 flex justify-end gap-2">
+                      <Skeleton className="h-9 w-24 rounded" />
+                      <Skeleton className="h-9 w-20 rounded" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             ) : children.length > 0 ? (
               children.map(child => {
                 // Count tasks for this child
@@ -166,7 +187,18 @@ const ParentDashboard = () => {
           
           <div className="grid grid-cols-1 gap-4">
             {loading ? (
-              <>Loading...</>
+              Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2 mb-4" />
+                    <div className="flex justify-between">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-8 w-24" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
             ) : incompleteTasks.length > 0 ? (
               incompleteTasks.slice(0, 3).map(task => (
                 <TaskCard 
