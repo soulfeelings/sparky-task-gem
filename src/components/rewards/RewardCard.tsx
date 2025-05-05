@@ -37,7 +37,7 @@ const RewardCard: React.FC<RewardCardProps> = ({ reward, onRedeem }) => {
     <div className="reward-card relative rounded-xl p-4 shadow text-white card-hover">
       {/* Category emoji */}
       <div className="absolute -right-2 -top-2 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-xl">
-        {reward.category ? getCategoryEmoji(reward.category) : '🏆'}
+        {reward.image_url ? '🏆' : '🎁'}
       </div>
       
       {/* Reward details */}
