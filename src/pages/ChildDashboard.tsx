@@ -1,17 +1,18 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/layouts/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Award, Trophy } from "lucide-react";
 import TaskCard from "@/components/tasks/TaskCard";
 import RewardCard from "@/components/rewards/RewardCard";
-import { demoTasks, demoRewards, demoUserStats, getAvailablePoints } from "@/utils/demoData";
+import { demoRewards, demoUserStats, getAvailablePoints } from "@/utils/demoData";
+import { useTasks } from "@/contexts/TasksContext";
 
 const ChildDashboard = () => {
   const { currentUser } = useAuth();
-  const [tasks, setTasks] = useState(demoTasks);
-  const [rewards] = useState(demoRewards);
+  const { tasks, completeTask } = useTasks();
+  const [rewards] = React.useState(demoRewards);
   
   // Get user stats
   const stats = currentUser ? demoUserStats[currentUser.id] : undefined;
@@ -19,20 +20,11 @@ const ChildDashboard = () => {
   
   // Filter tasks assigned to this child
   const childTasks = tasks.filter(
-    task => task.assignedTo === currentUser?.id && !task.completed
+    task => task.child_id === currentUser?.id && task.status === "pending"
   );
   
   const handleCompleteTask = (taskId: string) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, completed: true } 
-          : task
-      )
-    );
-    
-    // In a real app, we would update the stats here
-    // For the demo, we'll rely on the initial stats
+    completeTask(taskId);
   };
 
   return (
@@ -87,7 +79,15 @@ const ChildDashboard = () => {
               {childTasks.map(task => (
                 <TaskCard 
                   key={task.id} 
-                  task={task} 
+                  task={{
+                    id: task.id,
+                    title: task.title,
+                    description: task.description || "",
+                    assignedTo: task.child_id,
+                    points: task.points,
+                    completed: false,
+                    category: task.category
+                  }}
                   onComplete={handleCompleteTask}
                 />
               ))}
