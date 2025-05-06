@@ -1,6 +1,7 @@
+
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, ImageIcon } from "lucide-react";
+import { ImageIcon, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -40,9 +41,14 @@ const ProfileImageUpload = () => {
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       
       if (data) {
-        // Обновляем аватар пользователя
-        await updateUserAvatar(data.publicUrl);
-        toast.success("Аватар успешно обновлен");
+        // Обновляем аватар пользователя в базе данных и локальном состоянии
+        const success = await updateUserAvatar(data.publicUrl);
+        
+        if (success) {
+          toast.success("Аватар успешно обновлен");
+        } else {
+          toast.error("Не удалось обновить аватар в базе данных");
+        }
       }
     } catch (error: any) {
       console.error("Ошибка при загрузке файла:", error);

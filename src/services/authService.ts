@@ -73,5 +73,45 @@ export const authService = {
     // Generate link with parent ID
     const baseUrl = window.location.origin;
     return `${baseUrl}/?parentId=${userId}`;
+  },
+
+  // Update user avatar in the database
+  updateUserAvatar: async (userId: string, avatarUrl: string) => {
+    try {
+      // Update user metadata in auth.users
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: { avatar: avatarUrl }
+      });
+      
+      if (metadataError) {
+        console.error("Error updating user metadata:", metadataError);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating avatar in database:", error);
+      return false;
+    }
+  },
+  
+  // Update user name in the database
+  updateUserName: async (userId: string, newName: string) => {
+    try {
+      // Update user metadata in auth.users
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: { name: newName }
+      });
+      
+      if (metadataError) {
+        console.error("Error updating user metadata:", metadataError);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating name in database:", error);
+      return false;
+    }
   }
 };

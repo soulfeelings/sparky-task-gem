@@ -43,11 +43,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return authService.generateChildInviteLink(currentUser?.id);
   };
 
-  // Добавляем функцию обновления аватара пользователя
+  // Обновляем функцию обновления аватара пользователя для синхронизации с базой данных
   const updateUserAvatar = async (avatarUrl: string) => {
     if (!currentUser) return false;
     
     try {
+      // Обновляем данные в базе Supabase
+      const dbUpdateSuccess = await authService.updateUserAvatar(currentUser.id, avatarUrl);
+      
+      if (!dbUpdateSuccess) {
+        console.error("Failed to update avatar in database");
+        return false;
+      }
+      
       // Обновляем локальное состояние
       setCurrentUser({
         ...currentUser,
@@ -61,9 +69,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           : user
       ));
       
-      // Если в будущем потребуется сохранять URL аватара в базу данных,
-      // здесь можно добавить соответствующий вызов API
-      
       return true;
     } catch (error) {
       console.error("Error updating avatar:", error);
@@ -71,11 +76,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Добавляем функцию обновления имени пользователя
+  // Обновляем функцию обновления имени пользователя для синхронизации с базой данных
   const updateUserName = async (newName: string) => {
     if (!currentUser) return false;
     
     try {
+      // Обновляем данные в базе Supabase
+      const dbUpdateSuccess = await authService.updateUserName(currentUser.id, newName);
+      
+      if (!dbUpdateSuccess) {
+        console.error("Failed to update name in database");
+        return false;
+      }
+      
       // Обновляем локальное состояние
       setCurrentUser({
         ...currentUser,
@@ -88,9 +101,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           ? { ...user, name: newName } 
           : user
       ));
-      
-      // Если в будущем потребуется сохранять имя в базу данных,
-      // здесь можно добавить соответствующий вызов API
       
       return true;
     } catch (error) {
