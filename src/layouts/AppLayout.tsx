@@ -23,9 +23,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   
   const isParent = currentUser?.role === "parent";
-  const currentTab = location.pathname === "/" 
+  let currentTab = location.pathname === "/" 
     ? "home" 
     : location.pathname.substring(1);
+    
+  // Handle children route specifically
+  if (location.pathname.startsWith("/children")) {
+    currentTab = "children";
+  }
 
   const handleTabChange = (value: string) => {
     if (value === "home") {
@@ -93,7 +98,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 </>
               )}
               
-              {/* Logout */}
+              {/* Profile & Logout */}
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <User size={16} className="mr-2" />
+                Profile
+              </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => {
                   logout();
@@ -135,17 +144,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               </TabsTrigger>
             )}
             
-            {isParent ? (
-              <TabsTrigger value="tasks">
-                <Bell size={18} className="mr-2" />
-                Tasks
-              </TabsTrigger>
-            ) : (
-              <TabsTrigger value="profile">
-                <User size={18} className="mr-2" />
-                Profile
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="profile">
+              <User size={18} className="mr-2" />
+              Profile
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </footer>

@@ -9,8 +9,9 @@ import { ChildrenProvider } from "./contexts/ChildrenContext";
 import { TasksProvider } from "./contexts/TasksContext";
 import Index from "./pages/Index";
 import TasksPage from "./pages/TasksPage";
-import RewardsPage from "./pages/RewardsPage";  // We'll create this
-import ProfilePage from "./pages/ProfilePage";  // We'll create this
+import RewardsPage from "./pages/RewardsPage";  
+import ProfilePage from "./pages/ProfilePage";  
+import ChildrenPage from "./pages/ChildrenPage";  // Add import for the new page
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
                 <Route path="/tasks/:childId" element={<TasksPage />} />
                 <Route path="/rewards" element={<RewardsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/children" element={<ChildrenPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
