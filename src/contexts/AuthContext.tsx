@@ -12,6 +12,7 @@ export interface AppUser {
   name: string;
   role: UserRole;
   avatar?: string;
+  parentId?: string;  // Для детей - ID родителя
 }
 
 // Auth context type
@@ -21,10 +22,11 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, role?: UserRole, parentId?: string | null) => Promise<void>;
   logout: () => Promise<void>;
   switchAccount: (userId: string) => void;
   users: AppUser[]; // Added users property
+  generateChildInviteLink: () => string;
 }
 
 // Create context
@@ -47,7 +49,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       id: "child-1",
       name: "Child User",
       role: "child",
-      avatar: "https://i.pravatar.cc/150?u=child-1"
+      avatar: "https://i.pravatar.cc/150?u=child-1",
+      parentId: "parent-1"
     }
   ]);
 
@@ -58,11 +61,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setSupabaseUser(session?.user || null);
       if (session?.user) {
+        const role = session.user.user_metadata.role || 'parent';
+        const parentId = session.user.user_metadata.parentId;
+        
         const newUser = {
           id: session.user.id,
           name: session.user.user_metadata.name || 'User',
-          role: 'parent' as UserRole,
-          avatar: `https://i.pravatar.cc/150?u=${session.user.id}`
+          role: role as UserRole,
+          avatar: `https://i.pravatar.cc/150?u=${session.user.id}`,
+          parentId
         };
         setCurrentUser(newUser);
         
@@ -83,11 +90,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setSupabaseUser(session?.user || null);
       if (session?.user) {
+        const role = session.user.user_metadata.role || 'parent';
+        const parentId = session.user.user_metadata.parentId;
+        
         const newUser = {
           id: session.user.id,
           name: session.user.user_metadata.name || 'User',
-          role: 'parent' as UserRole,
-          avatar: `https://i.pravatar.cc/150?u=${session.user.id}`
+          role: role as UserRole,
+          avatar: `https://i.pravatar.cc/150?u=${session.user.id}`,
+          parentId
         };
         setCurrentUser(newUser);
         
@@ -110,15 +121,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  // Generate invite link with QR code for child
+  const generateChildInviteLink = () => {
+    if (!currentUser || currentUser.role !== 'parent') {
+      return '';
+    }
+    
+    // Generate link with parent ID
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/?parentId=${currentUser.id}`;
+  };
+
   // Sign up with email and password
-  const signup = async (email: string, password: string, name: string) => {
+  const signup = async (email: string, password: string, name: string, role: UserRole = 'parent', parentId: string | null = null) => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
-          data: { name }
+          data: { 
+            name,
+            role,
+            parentId: parentId || null
+          }
         }
       });
       
@@ -126,8 +152,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         toast.error(error.message);
         throw error;
       }
-      
-      toast.success("Signup successful! Please check your email for verification.");
+
+      // If this is a child account, connect it to the parent in the children table
+      if (role === 'child' && parentId) {
+        // This will be handled after the user is confirmed and logs in
+        toast.success("Регистрация успешна! Пожалуйста, проверьте свою почту для подтверждения.");
+      } else {
+        toast.success("Регистрация успешна! Пожалуйста, проверьте свою почту для подтверждения.");
+      }
     } catch (error) {
       console.error("Signup error:", error);
       throw error;
@@ -147,7 +179,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
 
-      toast.success("Login successful!");
+      toast.success("Вход выполнен успешно!");
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -161,7 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       await supabase.auth.signOut();
-      toast.success("Logged out successfully");
+      toast.success("Выход выполнен успешно");
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -186,7 +218,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signup,
     logout,
     switchAccount,
-    users // Added users property to the context value
+    users,
+    generateChildInviteLink
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,19 +1,22 @@
 
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSearchParams } from "react-router-dom";
 import Login from "@/components/auth/Login";
 import ParentDashboard from "@/pages/ParentDashboard";
 import ChildDashboard from "@/pages/ChildDashboard";
 
 const Index = () => {
   const { currentUser, loading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const parentId = searchParams.get("parentId");
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">Загрузка...</p>
         </div>
       </div>
     );
@@ -28,7 +31,9 @@ const Index = () => {
             KidBoost
           </h1>
           <p className="text-muted-foreground mt-2">
-            Task and reward management for families
+            {parentId 
+              ? "Регистрация аккаунта ребенка" 
+              : "Управление задачами и наградами для семей"}
           </p>
         </div>
         

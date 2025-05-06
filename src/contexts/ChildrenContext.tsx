@@ -28,7 +28,7 @@ export const ChildrenProvider = ({ children: childrenElements }: { children: Rea
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { currentUser } = useAuth();
+  const { currentUser, supabaseUser } = useAuth();
 
   const fetchChildren = async () => {
     if (!currentUser) {
@@ -54,29 +54,65 @@ export const ChildrenProvider = ({ children: childrenElements }: { children: Rea
     }
   };
 
+  // Регистрация ребенка в системе при первом входе, если он еще не добавлен в таблицу 'children'
+  useEffect(() => {
+    const registerChildIfNeeded = async () => {
+      // Если текущий пользователь - ребенок и есть родительский ID
+      if (currentUser?.role === 'child' && currentUser.parentId && supabaseUser) {
+        // Проверка, существует ли уже этот ребенок в таблице children
+        const { data, error } = await supabase
+          .from('children')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        
+        if (error && error.code === 'PGRST116') {
+          // Ребенок не найден в таблице, нужно добавить
+          await addChild(
+            currentUser.name, 
+            currentUser.avatar, 
+            currentUser.id,
+            currentUser.parentId
+          );
+        }
+      }
+    };
+
+    if (currentUser && supabaseUser) {
+      registerChildIfNeeded();
+    }
+  }, [currentUser, supabaseUser]);
+
   useEffect(() => {
     fetchChildren();
   }, [currentUser]);
 
-  const addChild = async (name: string, avatar?: string) => {
-    if (!currentUser) return;
+  const addChild = async (name: string, avatar?: string, childId?: string, parentId?: string) => {
+    if (!currentUser && !parentId) return;
 
     try {
+      const userId = parentId || currentUser?.id;
+      const childData = {
+        id: childId || undefined, // Если передан ID ребенка (для уже зарегистрированных), используем его
+        name,
+        avatar: avatar || `https://i.pravatar.cc/150?u=${Date.now()}`,
+        user_id: userId
+      };
+
       const { error, data } = await supabase
         .from('children')
-        .insert({
-          name,
-          avatar: avatar || `https://i.pravatar.cc/150?u=${Date.now()}`,
-          user_id: currentUser.id
-        })
+        .insert(childData)
         .select();
 
       if (error) throw error;
       
-      toast.success(`Added ${name} to your family!`);
+      if (!childId) {
+        // Только показываем уведомление, если это обычное добавление ребенка (не автоматическое)
+        toast.success(`Добавлен ${name} в вашу семью!`);
+      }
       setChildren(prev => [...prev, ...(data || [])]);
     } catch (err) {
-      toast.error('Failed to add child');
+      toast.error('Не удалось добавить ребенка');
       console.error('Error adding child:', err);
     }
   };
@@ -90,12 +126,12 @@ export const ChildrenProvider = ({ children: childrenElements }: { children: Rea
 
       if (error) throw error;
       
-      toast.success('Child updated successfully');
+      toast.success('Данные ребенка обновлены');
       setChildren(prev => 
         prev.map(child => child.id === id ? { ...child, ...updates } : child)
       );
     } catch (err) {
-      toast.error('Failed to update child');
+      toast.error('Не удалось обновить данные ребенка');
       console.error('Error updating child:', err);
     }
   };
@@ -109,10 +145,10 @@ export const ChildrenProvider = ({ children: childrenElements }: { children: Rea
 
       if (error) throw error;
       
-      toast.success('Child removed');
+      toast.success('Ребенок удален');
       setChildren(prev => prev.filter(child => child.id !== id));
     } catch (err) {
-      toast.error('Failed to remove child');
+      toast.error('Не удалось удалить ребенка');
       console.error('Error deleting child:', err);
     }
   };
