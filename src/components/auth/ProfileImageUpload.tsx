@@ -41,7 +41,7 @@ const ProfileImageUpload = () => {
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       
       if (data) {
-        // Обновляем аватар пользователя в базе данных и локальном состоянии
+        // Обновляем аватар пользователя в таблице profiles и локальном состоянии
         const success = await updateUserAvatar(data.publicUrl);
         
         if (success) {

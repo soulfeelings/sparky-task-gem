@@ -75,43 +75,44 @@ export const authService = {
     return `${baseUrl}/?parentId=${userId}`;
   },
 
-  // Update user avatar in the database
-  updateUserAvatar: async (userId: string, avatarUrl: string) => {
+  // Обновление данных профиля пользователя в таблице profiles
+  updateUserProfile: async (userId: string, data: { avatar?: string, full_name?: string }) => {
     try {
-      // Update user metadata in auth.users
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: { avatar: avatarUrl }
-      });
+      const { error } = await supabase
+        .from('profiles')
+        .update(data)
+        .eq('id', userId);
       
-      if (metadataError) {
-        console.error("Error updating user metadata:", metadataError);
+      if (error) {
+        console.error("Error updating profile:", error);
         return false;
       }
       
       return true;
     } catch (error) {
-      console.error("Error updating avatar in database:", error);
+      console.error("Error updating profile in database:", error);
       return false;
     }
   },
   
-  // Update user name in the database
-  updateUserName: async (userId: string, newName: string) => {
+  // Получение профиля пользователя из таблицы profiles
+  getUserProfile: async (userId: string) => {
     try {
-      // Update user metadata in auth.users
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: { name: newName }
-      });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
       
-      if (metadataError) {
-        console.error("Error updating user metadata:", metadataError);
-        return false;
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        return null;
       }
       
-      return true;
+      return data;
     } catch (error) {
-      console.error("Error updating name in database:", error);
-      return false;
+      console.error("Error fetching profile from database:", error);
+      return null;
     }
   }
 };

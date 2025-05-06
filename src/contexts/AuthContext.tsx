@@ -16,7 +16,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     users,
     setCurrentUser,
-    setUsers
+    setUsers,
+    loadUserProfile
   } = useAuthState();
   
   // Switch between accounts (for demo - will be adjusted)
@@ -43,13 +44,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return authService.generateChildInviteLink(currentUser?.id);
   };
 
-  // Обновляем функцию обновления аватара пользователя для синхронизации с базой данных
+  // Обновление аватара пользователя в profiles и локальном состоянии
   const updateUserAvatar = async (avatarUrl: string) => {
-    if (!currentUser) return false;
+    if (!currentUser || !supabaseUser) return false;
     
     try {
-      // Обновляем данные в базе Supabase
-      const dbUpdateSuccess = await authService.updateUserAvatar(currentUser.id, avatarUrl);
+      // Обновляем данные в базе Supabase (таблица profiles)
+      const dbUpdateSuccess = await authService.updateUserProfile(currentUser.id, {
+        avatar: avatarUrl
+      });
       
       if (!dbUpdateSuccess) {
         console.error("Failed to update avatar in database");
@@ -76,13 +79,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Обновляем функцию обновления имени пользователя для синхронизации с базой данных
+  // Обновление имени пользователя в profiles и локальном состоянии
   const updateUserName = async (newName: string) => {
-    if (!currentUser) return false;
+    if (!currentUser || !supabaseUser) return false;
     
     try {
-      // Обновляем данные в базе Supabase
-      const dbUpdateSuccess = await authService.updateUserName(currentUser.id, newName);
+      // Обновляем данные в базе Supabase (таблица profiles)
+      const dbUpdateSuccess = await authService.updateUserProfile(currentUser.id, {
+        full_name: newName
+      });
       
       if (!dbUpdateSuccess) {
         console.error("Failed to update name in database");
