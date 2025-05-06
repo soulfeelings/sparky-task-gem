@@ -81,7 +81,7 @@ const Login = () => {
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="login" disabled={isChildSignup}>Вход</TabsTrigger>
+              {!isChildSignup && <TabsTrigger value="login" disabled={isChildSignup}>Вход</TabsTrigger>}
               <TabsTrigger value="signup">Регистрация</TabsTrigger>
             </TabsList>
             
