@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useAuthState } from "@/hooks/useAuthState";
 import { authService } from "@/services/authService";
 import { AuthContextType, UserRole } from "@/types/auth";
+import { useNavigate } from "react-router-dom";
 
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,7 +18,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setCurrentUser,
     setUsers
   } = useAuthState();
-
+  
   // Switch between accounts (for demo - will be adjusted)
   const switchAccount = (userId: string) => {
     const selectedUser = users.find(user => user.id === userId);
@@ -42,6 +43,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return authService.generateChildInviteLink(currentUser?.id);
   };
 
+  // Добавляем функцию обновления аватара пользователя
+  const updateUserAvatar = async (avatarUrl: string) => {
+    if (!currentUser) return;
+    
+    try {
+      // Обновляем локальное состояние
+      setCurrentUser({
+        ...currentUser,
+        avatar: avatarUrl
+      });
+      
+      // Обновляем список пользователей
+      setUsers(prev => prev.map(user => 
+        user.id === currentUser.id 
+          ? { ...user, avatar: avatarUrl } 
+          : user
+      ));
+      
+      // Если в будущем потребуется сохранять URL аватара в базу данных,
+      // здесь можно добавить соответствующий вызов API
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating avatar:", error);
+      return false;
+    }
+  };
+
   const value: AuthContextType = {
     currentUser,
     supabaseUser,
@@ -52,7 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     logout,
     switchAccount,
     users,
-    generateChildInviteLink
+    generateChildInviteLink,
+    updateUserAvatar
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

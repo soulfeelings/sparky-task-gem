@@ -1,8 +1,10 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/layouts/AppLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import ChildInviteQR from "@/components/auth/ChildInviteQR";
+import ProfileImageUpload from "@/components/auth/ProfileImageUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,9 +12,12 @@ import { LogOut, User } from "lucide-react";
 
 const ProfilePage = () => {
   const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
   
   const handleLogout = async () => {
     await logout();
+    // Добавляем перенаправление на главную страницу после выхода
+    navigate("/");
   };
   
   return (
@@ -36,6 +41,8 @@ const ProfilePage = () => {
             </div>
           </CardHeader>
           <CardContent>
+            <ProfileImageUpload />
+            
             <Button
               variant="destructive"
               onClick={handleLogout}

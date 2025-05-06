@@ -40,6 +40,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/"); // Перенаправление на главную страницу после выхода
+  };
+
   const otherUsers = users.filter(u => u.id !== currentUser?.id);
 
   return (
@@ -104,10 +109,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => {
-                  logout();
-                  navigate("/");
-                }}
+                onClick={handleLogout}
                 className="text-destructive"
               >
                 <LogOut size={16} className="mr-2" />

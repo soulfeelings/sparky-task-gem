@@ -24,4 +24,5 @@ export interface AuthContextType {
   switchAccount: (userId: string) => void;
   users: AppUser[]; // Added users property
   generateChildInviteLink: () => string;
+  updateUserAvatar: (avatarUrl: string) => Promise<boolean>;
 }
