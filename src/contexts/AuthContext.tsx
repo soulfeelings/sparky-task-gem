@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Добавляем функцию обновления аватара пользователя
   const updateUserAvatar = async (avatarUrl: string) => {
-    if (!currentUser) return;
+    if (!currentUser) return false;
     
     try {
       // Обновляем локальное состояние
@@ -71,6 +71,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Добавляем функцию обновления имени пользователя
+  const updateUserName = async (newName: string) => {
+    if (!currentUser) return false;
+    
+    try {
+      // Обновляем локальное состояние
+      setCurrentUser({
+        ...currentUser,
+        name: newName
+      });
+      
+      // Обновляем список пользователей
+      setUsers(prev => prev.map(user => 
+        user.id === currentUser.id 
+          ? { ...user, name: newName } 
+          : user
+      ));
+      
+      // Если в будущем потребуется сохранять имя в базу данных,
+      // здесь можно добавить соответствующий вызов API
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating name:", error);
+      return false;
+    }
+  };
+
   const value: AuthContextType = {
     currentUser,
     supabaseUser,
@@ -82,7 +110,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     switchAccount,
     users,
     generateChildInviteLink,
-    updateUserAvatar
+    updateUserAvatar,
+    updateUserName
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

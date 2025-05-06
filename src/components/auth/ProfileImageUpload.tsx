@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, ImageIcon } from "lucide-react";
@@ -130,7 +129,7 @@ const ProfileImageUpload = () => {
   };
 
   return (
-    <div className="mb-4">
+    <div>
       <div className="flex gap-2 mb-2">
         <Button 
           type="button" 
