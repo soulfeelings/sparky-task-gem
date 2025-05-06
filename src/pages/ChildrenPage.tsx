@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import AppLayout from "@/layouts/AppLayout";
 import { useChildren, Child } from "@/contexts/ChildrenContext";
 import { useAuth } from "@/contexts/AuthContext";
 import ChildInviteQR from "@/components/auth/ChildInviteQR";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Plus, User, UserPlus } from "lucide-react";
@@ -119,9 +120,9 @@ const ChildrenPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-1">
             {children.map((child) => (
-              <Card key={child.id} className="flex flex-col">
+              <Card key={child.id} className="overflow-hidden">
                 <CardHeader className="flex flex-row items-center gap-4 pb-2">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={child.avatar} alt={child.name} />
@@ -137,11 +138,8 @@ const ChildrenPage = () => {
                     </CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="py-4">
-                  {/* Content can go here if needed */}
-                </CardContent>
-                <CardFooter className="pt-0 px-6 pb-4">
-                  <div className="flex space-x-2 w-full">
+                <CardContent>
+                  <div className="flex space-x-2">
                     <Button 
                       className="flex-1"
                       onClick={() => handleViewTasks(child)}
@@ -156,7 +154,7 @@ const ChildrenPage = () => {
                       Удалить
                     </Button>
                   </div>
-                </CardFooter>
+                </CardContent>
               </Card>
             ))}
           </div>
