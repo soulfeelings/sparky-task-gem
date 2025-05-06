@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, Gallery } from "lucide-react";
+import { Camera, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -139,7 +139,7 @@ const ProfileImageUpload = () => {
           disabled={isUploading}
           className="flex-1"
         >
-          <Gallery className="mr-2 h-4 w-4" />
+          <ImageIcon className="mr-2 h-4 w-4" />
           Галерея
         </Button>
         
